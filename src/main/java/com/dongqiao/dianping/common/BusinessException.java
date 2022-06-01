@@ -1,5 +1,10 @@
 package com.dongqiao.dianping.common;
 
+/**
+ * @description: handle business exception error
+ * @author: Dongqiao Yue
+ * @create: 2022-06-01 15:25
+ **/
 public class BusinessException extends Exception {
     private CommonError commonError;
 
