@@ -1,6 +1,7 @@
 package com.dongqiao.dianping.dal;
 
 import com.dongqiao.dianping.model.UserModel;
+import org.apache.ibatis.annotations.Param;
 
 public interface UserModelMapper {
     /**
@@ -50,4 +51,6 @@ public interface UserModelMapper {
      * @mbg.generated Tue May 31 19:45:33 EDT 2022
      */
     int updateByPrimaryKey(UserModel record);
+
+    UserModel selectByTelphoneAndPassword(@Param("telphone") String telphone, @Param("password") String password);
 }

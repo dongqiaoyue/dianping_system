@@ -12,7 +12,7 @@ public enum EmBusinessError {
     //用户服务相关的错误类型20000开头
     REGISTER_DUP_FAIL(20001,"User already exists"),
 
-    LOGIN_FAIL(20002,"Phone number or password is invalid");
+    LOGIN_FAIL(20002,"Phone number or password invalid");
 
     private Integer errCode;
 
