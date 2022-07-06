@@ -9,3 +9,4 @@ CREATE TABLE `dianping`.`user` (
 	PRIMARY KEY (`id`),
 	UNIQUE `telphone_unique_index` USING BTREE (`telphone`) comment ''
 ) COMMENT='';
+
