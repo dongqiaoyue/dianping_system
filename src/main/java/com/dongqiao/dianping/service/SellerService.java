@@ -15,4 +15,6 @@ public interface SellerService {
 
     SellerModel changeStatus(Integer id,Integer disabledFlag) throws BusinessException;
 
+    Integer countAllSeller();
+
 }

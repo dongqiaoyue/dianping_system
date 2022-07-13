@@ -15,7 +15,10 @@ public enum EmBusinessError {
     LOGIN_FAIL(20002,"Phone number or password invalid"),
 
     //admin相关错误
-    ADMIN_SHOULD_LOGIN(30001,"Admin should login first");
+    ADMIN_SHOULD_LOGIN(30001,"Admin should login first"),
+
+    //品类相关错误
+    CATEGORY_NAME_DUPLICATED(40001, "category name already exist");
 
     private Integer errCode;
 
