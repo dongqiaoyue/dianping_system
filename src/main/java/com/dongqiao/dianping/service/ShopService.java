@@ -11,7 +11,7 @@ public interface ShopService {
     ShopModel create(ShopModel shopModel) throws BusinessException;
     ShopModel get(Integer id);
     List<ShopModel> selectAll();
-//    List<ShopModel> recommend(BigDecimal longitude,BigDecimal latitude);
+    List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude);
 //
 //    List<Map<String,Object>> searchGroupByTags(String keyword,Integer categoryId,String tags);
 //
