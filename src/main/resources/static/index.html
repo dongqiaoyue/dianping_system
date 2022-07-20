@@ -200,7 +200,8 @@
 
     <div id="firstHeader" class="titlebar activebar">
         <div class="topbar">
-            <div class="citylist fl" id="citylist" tapmode="">Shanghai<img src="./image/title_home_arrow_down_normal.png" alt="" class="citylistarrow"></div>
+            <div class="citylist fl" id="citylist" tapmode="">Boston<img src="./image/title_home_arrow_down_normal.png" alt="" class="citylistarrow"></div>
+            <input class="search firstSearch" type="text" placeHolder="search" name="keyword" id="keyword" style="width:250px;outline-width:0px;"/>
             <input type="hidden" id="longitude" value="" name="longitude"/>
             <input type="hidden" id="latitude" value="" name="latitude"/>
             <span id="rightTitle" style="font-size:16px;color:white;float:right;padding-top:12px;">Login</span>
@@ -223,6 +224,21 @@
 
         <div class="guesstitle" id="guess">you may also like<img src="/static/image/home_competitive_icon.png" alt=""></div>
         <div class="home-tuan-list" id="tuanList">
+
+        </div>
+
+        <div class="guesstitle" id="searchTitle" style="font-size:14px;">
+            <p id="resTitle" >search result</p>
+            <div id="extraPadding" style="display:none;">
+                <p>Category filter</p>
+                <div id="categoryFilter" style="margin-bottom:10px;"></div>
+                <p>Order by</p>
+                <div id="priceFilter" style="margin-bottom:10px;"></div>
+                <p>Tags filter</p>
+                <div id="tagsFilter" style="margin-bottom:10px;"></div>
+            </div>
+        </div>
+        <div class="home-tuan-list" id="searchList">
 
         </div>
     </div>
@@ -252,12 +268,12 @@
 <script type="text/javascript" src="/static/script/swipe.js"></script>
 <script type="text/javascript" src="/static/script/jquery.min.js"></script>
 <script type="text/javascript" src="/static/script/bootstrap.js"></script>
-<script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATkJ1DO70LGdoXT3dQ3EJPaH-Eanryr8g&callback=initMap&v=weekly"
-        defer
-></script>
+
 
 <script type="text/javascript">
+    var g_orderby = null;
+    var g_categoryFilter = null;
+    var g_tagFilter = null;
 
     window.onload = function() {
 
@@ -277,8 +293,11 @@
         return number;
     };
 
+
+
     jQuery(document).ready(function() {
         var g_currentUser = null;
+        $("#searchTitle").hide();
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -287,6 +306,8 @@
                     var latitude = position.coords.latitude;
                     $("#longitude").val(longitude);
                     $("#latitude").val(latitude);
+                    console.log(longitude)
+                    console.log(latitude)
 
                     $.ajax({
                         type : "GET",
@@ -312,7 +333,7 @@
                                         '<div class="shopname">'+dataList[i].name+'</div><span class="distance">'+distanceStr+'</span>'+
                                         '<div class="title">'+dataList[i].tags+'</div>'+
                                         '<div class="info">'+
-                                        '<span class="symbol">¥</span>'+
+                                        '<span class="symbol">$</span>'+
                                         '<span class="price">'+dataList[i].pricePerMan+'</span></div> </div> </div> </div> </div></a>');
                                     $("#tuanList").append(content);
                                 }
@@ -408,8 +429,148 @@
             return false;
         });
 
+        function searchMethod(){
 
+            var orderby = "";
+            var categoryFilter = "";
+            var tagFilter = "";
+
+            var keyword = $("#keyword").val();
+            var longitude = $("#longitude").val();
+            var latitude = $("#latitude").val();
+            if ($("#keyword").val() == "") {
+                alert("key word cannot be blank");
+                return false;
+            }
+            if (longitude== "" || latitude == "" ) {
+                alert("waiting for geolocation");
+                return false;
+            }
+            if (g_orderby == null) {
+                orderby = "";
+            } else {
+                orderby = "&orderby="+g_orderby;
+            }
+
+            if (g_categoryFilter == null) {
+                categoryFilter = "";
+            } else {
+                categoryFilter = "&categoryId="+g_categoryFilter;
+            }
+            if (g_tagFilter == null) {
+                tagFilter = "";
+            } else {
+                tagFilter = "&tags="+g_tagFilter;
+            }
+
+            $.ajax({
+                type : "POST",
+                contentType : "application/json; charset=utf-8",
+                url : "/shop/search?keyword="+keyword+"&longitude="+longitude+"&latitude="+latitude+orderby+categoryFilter+tagFilter,
+                success : function(data){
+                    if(data.status == 'success'){
+                        $("#guess").hide();
+                        $("#tuanList").hide();
+                        $("#searchTitle").show();
+                        $("#searchList").show();
+                        $("#searchList").empty();
+                        $("#slider").hide();
+                        var dataList = data.data.shop;
+                        var categoryList = data.data.category;
+                        var tagsList = data.data.tags;
+                        for(var i = 0; i < dataList.length; i++){
+                            var distance = dataList[i].distance;
+                            var distanceStr = "";
+                            if(distance >= 1000){
+                                distanceStr = getFloat(distance / 1000,1) + " km";
+                            }else{
+                                distanceStr = distance + " m";
+                            }
+                            var content = $('<a href="" class="item Fix hightitem">'+
+                                '<div class="cnt">'+
+                                '<img class="pic" src="'+dataList[i].iconUrl+'"/>'+
+                                '<div class="wrap">'+
+                                '<div class="wrap2">'+
+                                '<div class="content">'+
+                                '<div class="shopname">'+dataList[i].name+'</div><span class="distance">'+distanceStr+'</span>'+
+                                '<div class="title">'+dataList[i].tags+'</div>'+
+                                '<div class="info">'+
+                                '<span class="symbol">$</span>'+
+                                '<span class="price">'+dataList[i].pricePerMan+'</span></div> </div> </div> </div> </div></a>');
+                            $("#searchList").append(content);
+                        }
+                        $("#categoryFilter").empty();
+                        var categoryTag = $("<span class='bubble' data-id='"+0+"' id='category"+0+"'>all</span>");
+                        $("#categoryFilter").append(categoryTag);
+                        for(var i = 0; i < categoryList.length; i++){
+                            var categoryTag = $("<span class='bubble' data-id='"+categoryList[i].id+"' id='category"+categoryList[i].id+"'>"+categoryList[i].name+"</span>");
+                            $("#categoryFilter").append(categoryTag);
+                        }
+
+
+                        $("span[id^='category']").on('click',function(){
+                            var id = $(this).data("id");
+                            if(id == 0){
+                                g_categoryFilter = null;
+                            }else{
+                                g_categoryFilter = id;
+                            }
+                            searchMethod();
+                        });
+
+                        $("#priceFilter").empty();
+                        $("#priceFilter").append($('<span class="bubble" id="defaultOrder">Default</span>'));
+                        $("#priceFilter").append($('<span class="bubble" id="lowPriceOrder">Price</span>'));
+
+                        $("#defaultOrder").on('click',function(){
+                            g_orderby=null;
+                            searchMethod();
+                        });
+                        $("#lowPriceOrder").on('click',function(){
+                            g_orderby=1;
+                            searchMethod();
+                        });
+
+                        $("#tagsFilter").empty();
+                        var tagTag = $("<span class='bubble' data-id='' id='tags'>all</span>");
+                        $("#tagsFilter").append(tagTag);
+                        for(var i = 0; i < tagsList.length; i++){
+                            var tagTag = $("<span class='bubble' data-id='"+tagsList[i].tags+"' id='tags"+tagsList[i].tags+"'>"+tagsList[i].tags+"("+tagsList[i].num+")</span>");
+                            $("#tagsFilter").append(tagTag);
+                        }
+                        $("span[id^='tags']").on('click',function(){
+                            var id = $(this).data("id");
+                            if(id == ''){
+                                g_tagFilter = null;
+                            }else{
+                                g_tagFilter = id;
+                            }
+                            searchMethod();
+                        });
+                    }else{
+                        alert("search failed, "+data.data.errMsg);
+                    }
+                },
+                error : function(data){
+                    alert("search failed, "+data.responseText);
+                }
+            });
+        }
+
+        $('#keyword').on('keypress',function(event){
+            if(event.keyCode == 13) {
+                searchMethod();
+            }
+        });
+
+        $("#resTitle").on("click",function(){
+            $("#extraPadding").toggle(500);
+        });
 
     });
 </script>
+<script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATkJ1DO70LGdoXT3dQ3EJPaH-Eanryr8g&callback=initMap"
+        async defer
+></script>
 </html>
