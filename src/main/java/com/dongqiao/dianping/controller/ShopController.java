@@ -30,6 +30,7 @@ public class ShopController {
     @Autowired
     private CategoryService categoryService;
 
+
     //推荐服务V1.0
     @RequestMapping("/recommend")
     @ResponseBody

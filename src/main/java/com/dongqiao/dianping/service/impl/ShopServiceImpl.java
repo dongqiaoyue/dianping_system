@@ -8,6 +8,8 @@ import com.dongqiao.dianping.dal.ShopModelMapper;
 import com.dongqiao.dianping.model.CategoryModel;
 import com.dongqiao.dianping.model.SellerModel;
 import com.dongqiao.dianping.model.ShopModel;
+import com.dongqiao.dianping.recommend.RecommendService;
+import com.dongqiao.dianping.recommend.RecommendSortService;
 import com.dongqiao.dianping.service.CategoryService;
 import com.dongqiao.dianping.service.SellerService;
 import com.dongqiao.dianping.service.ShopService;
@@ -35,6 +37,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class ShopServiceImpl implements ShopService{
+
+    @Autowired
+    private RecommendService recommendService;
+
+    @Autowired
+    private RecommendSortService recommendSortService;
 
     @Autowired
     private ShopModelMapper shopModelMapper;
@@ -97,11 +105,19 @@ public class ShopServiceImpl implements ShopService{
 
     @Override
     public List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude) {
-        List<ShopModel> shopModelList = shopModelMapper.recommend(longitude, latitude);
-        shopModelList.forEach(shopModel -> {
-            shopModel.setSellerModel(sellerService.get(shopModel.getSellerId()));
-            shopModel.setCategoryModel(categoryService.get(shopModel.getCategoryId()));
-        });
+        List<Integer> shopIdList = recommendService.recall(148);
+        shopIdList = recommendSortService.sort(shopIdList, 148);
+        List<ShopModel> shopModelList = shopIdList.stream().map(id->{
+            ShopModel shopModel = get(id);
+            shopModel.setIconUrl("/static/image/shopcover/zoocoffee.jpg");
+            shopModel.setDistance(100);
+            return shopModel;
+        }).collect(Collectors.toList());
+//        List<ShopModel> shopModelList = shopModelMapper.recommend(longitude, latitude);
+//        shopModelList.forEach(shopModel -> {
+//            shopModel.setSellerModel(sellerService.get(shopModel.getSellerId()));
+//            shopModel.setCategoryModel(categoryService.get(shopModel.getCategoryId()));
+//        });
         return shopModelList;
     }
 
